@@ -2,29 +2,31 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using WebSocketSharp;
 
 namespace AStarPathFindingBotCore
 {
     class Program
     {
+        private const int TIMEOUT_IN_SECONDS = 5;
         static void Main(string[] args)
         {
-            using (var ws = new WebSocket("ws://localhost:8000"))
+            using (var webSocket = new WebSocket("ws://localhost:8000"))
             {
-
-                ws.OnMessage += (sender, e) =>
+                webSocket.OnMessage += (sender, e) =>
                     Console.WriteLine("Server says: " + e.Data);
 
-                ws.Connect();
+                webSocket.ConnectWithTimeout(TIMEOUT_IN_SECONDS);
+                
                 var settings = new JsonSerializerSettings
                 {
                     ContractResolver = new CamelCasePropertyNamesContractResolver()
                 };
+                var bot = new PathFindingBot(settings);
+                bot.JoinGame(webSocket, "Kamil");
 
-                var serializedConnectMessage = JsonConvert.SerializeObject(new ConnectMessage { Name = "Kamil" }, settings);
-                ws.Send(serializedConnectMessage);
-                
                 Console.ReadKey(true);
             }
         }
