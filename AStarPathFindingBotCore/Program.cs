@@ -17,12 +17,13 @@ namespace AStarPathFindingBotCore
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
 
-            var playerOne = new AStarBot("Kamil", "ws://localhost:8000", settings);
-                
+            var playerOne = new MyBot("Kamil", "ws://localhost:8000", settings);
+            var playerTwo = new MyBot("Michał", "ws://localhost:8000", settings);
             playerOne.JoinGame();
-
+            playerTwo.JoinGame();
             Console.ReadKey(true);
             playerOne.ExitGame();
+            playerTwo.ExitGame();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using AStarPathFindingBotCore.Interfaces;
+﻿using AStarPathFindingBotCore.Domain.Interfaces;
 using AStarPathFindingBotCore.Messages;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -6,17 +6,31 @@ using System;
 using System.Threading;
 using WebSocketSharp;
 
-namespace AStarPathFindingBotCore.Base
+namespace AStarPathFindingBotCore.Domain.Base
 {
-    public abstract class BotBase : IBot
+    public abstract class LaxmarPlayerBase : ILaxmarPlayer
     {
+        #region "Current player state"
+
+        public int Id { get; set; }
+        public bool HasFlag { get; set; }
+        public bool IsAlive { get; set; }
+        public string Name { get; }
+        public int MaxMovesPerRound { get; set; }
+        public BasePosition BasePosition { get; set; }
+        public int ViewRange { get; set; }
+        public int MovesLeft { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+
+        #endregion
+
         public int TimeoutInSeconds { get; } = 5;
         public bool IsConnected { get; set; }
         public JsonSerializerSettings SerializerSettings { get; }
         public WebSocket WebSocket { get; }
-        public string Name { get; }
 
-        public BotBase(string name, string webSocketUrl, JsonSerializerSettings serializerSettings = null)
+        public LaxmarPlayerBase(string name, string webSocketUrl, JsonSerializerSettings serializerSettings = null)
         {
             Name = name;
             SerializerSettings = serializerSettings;
@@ -67,6 +81,11 @@ namespace AStarPathFindingBotCore.Base
                 default:
                     break;
             }
+        }
+
+        public bool MakeMove()
+        {
+            throw new NotImplementedException();
         }
     }
 }
