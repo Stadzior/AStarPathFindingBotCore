@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AStarPathFindingBotCore.Enums;
+using Newtonsoft.Json;
 using WebSocketSharp;
 
 namespace AStarPathFindingBotCore.Domain.Interfaces
@@ -22,6 +23,7 @@ namespace AStarPathFindingBotCore.Domain.Interfaces
         WebSocket WebSocket { get; }
         bool JoinGame();
         void ExitGame();
-        bool MakeMove();
+        bool MakeMove(MoveDirection direction);
+        string ChooseDirection();
     }
 }

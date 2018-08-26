@@ -1,11 +1,11 @@
-﻿using AStarPathFindingBotCore.Messages.Interfaces;
+﻿using AStarPathFindingBotCore.Communication.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AStarPathFindingBotCore.Messages
+namespace AStarPathFindingBotCore.Communication
 {
-    public class ConnectedResponse : IMessage
+    public class ConnectedMessage : IMessage
     {
         public string Type => "Connected";
         public string Msg { get; set; }

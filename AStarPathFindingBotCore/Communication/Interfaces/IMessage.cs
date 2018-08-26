@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AStarPathFindingBotCore.Messages.Interfaces
+namespace AStarPathFindingBotCore.Communication.Interfaces
 {
     public interface IMessage
     {

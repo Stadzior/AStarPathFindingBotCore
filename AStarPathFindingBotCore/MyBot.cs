@@ -1,18 +1,17 @@
 ﻿using AStarPathFindingBotCore.Domain.Base;
-using AStarPathFindingBotCore.Domain.Interfaces;
 using Newtonsoft.Json;
 
 namespace AStarPathFindingBotCore
 {
-    public class MyBot : LaxmarPlayerBase, IBot
+    public class MyBot : LaxmarPlayerBase
     {
         public MyBot(string name, string webSocketUrl, JsonSerializerSettings serializerSettings = null) : base(name, webSocketUrl, serializerSettings)
         {
         }
 
-        public string ChooseDirection()
+        public override string ChooseDirection()
         {
-            return "LEFT";
+            return "UP";
         }
     }
 }

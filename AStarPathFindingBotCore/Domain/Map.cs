@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace AStarPathFindingBotCore.Domain
 {
-    class Map
+    public class Map
     {
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public List<List<int>> Fields { get; set; }
     }
 }

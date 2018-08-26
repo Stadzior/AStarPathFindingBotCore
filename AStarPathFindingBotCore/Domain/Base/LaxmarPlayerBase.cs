@@ -1,8 +1,10 @@
-﻿using AStarPathFindingBotCore.Domain.Interfaces;
-using AStarPathFindingBotCore.Messages;
+﻿using AStarPathFindingBotCore.Communication;
+using AStarPathFindingBotCore.Domain.Interfaces;
+using AStarPathFindingBotCore.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using WebSocketSharp;
 
@@ -30,6 +32,15 @@ namespace AStarPathFindingBotCore.Domain.Base
         public JsonSerializerSettings SerializerSettings { get; }
         public WebSocket WebSocket { get; }
 
+        private readonly Dictionary<MoveDirection, string> _directionsDictionary = new Dictionary<MoveDirection, string>
+        {
+            {MoveDirection.Down, "DOWN"},
+            {MoveDirection.Left, "LEFT"},
+            {MoveDirection.NoMove, "NO_MOVE"},
+            {MoveDirection.Right, "RIGHT"},
+            {MoveDirection.Up, "UP"}
+        };
+
         public LaxmarPlayerBase(string name, string webSocketUrl, JsonSerializerSettings serializerSettings = null)
         {
             Name = name;
@@ -43,8 +54,8 @@ namespace AStarPathFindingBotCore.Domain.Base
             if (!WebSocket.ConnectWithTimeout(TimeoutInSeconds))
                 return false;
 
-            var serializedConnectMessage = JsonConvert.SerializeObject(new ConnectRequest { Name = Name }, SerializerSettings);
-            WebSocket.Send(serializedConnectMessage);
+            var connectMessage = JsonConvert.SerializeObject(new ConnectMessage { Name = Name }, SerializerSettings);
+            WebSocket.Send(connectMessage);
 
             Console.WriteLine($"{Name}: Trying to join the game: ");
             for (int i = 1; i <= WebSocket.WaitTime.TotalSeconds; i++)
@@ -76,16 +87,50 @@ namespace AStarPathFindingBotCore.Domain.Base
                 case "Connected":
                     {
                         IsConnected = true;
+                        var connectedMessage = JsonConvert.DeserializeObject<ConnectedMessage>(e.Data);
+                        Id = connectedMessage.PlayerId;
+                        break;
+                    }
+                case "MoveRequest":
+                    {
+                        var moveRequestMessage = JsonConvert.DeserializeObject<MoveRequestMessage>(e.Data);
+                        //Do choosing direction
+                        MakeMove(MoveDirection.Up);
                         break;
                     }
                 default:
+                    Console.WriteLine(e.Data);
                     break;
             }
         }
 
-        public bool MakeMove()
+        public bool MakeMove(MoveDirection moveDirection)
         {
-            throw new NotImplementedException();
+            if (!IsConnected)
+            {
+                Console.WriteLine($"{Name}: I can't move since I'm not in any game yet.");
+                return false;
+            }
+
+            
+            var moveMessage = JsonConvert.SerializeObject(new MoveMessage { PlayerId = Id, Move = _directionsDictionary[moveDirection] }, SerializerSettings);
+            WebSocket.Send(moveMessage);
+            return true;
+            //Console.WriteLine($"{Name}: Trying to join the game: ");
+            //for (int i = 1; i <= WebSocket.WaitTime.TotalSeconds; i++)
+            //{
+            //    if (IsConnected)
+            //    {
+            //        Console.WriteLine($"{Environment.NewLine}{Name}: Joined the game.");
+            //        return true;
+            //    }
+            //    Thread.Sleep(1000);
+            //    Console.Write($"{i}...");
+            //}
+            //Console.WriteLine($"{Environment.NewLine}{Name}: Could not join the game.");
+            //return false;
         }
+
+        public abstract string ChooseDirection();
     }
 }

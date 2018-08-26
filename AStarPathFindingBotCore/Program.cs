@@ -1,4 +1,5 @@
-﻿using AStarPathFindingBotCore.Messages;
+﻿using AStarPathFindingBotCore.Communication;
+using AStarPathFindingBotCore.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
