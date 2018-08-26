@@ -24,7 +24,7 @@ namespace AStarPathFindingBotCore.Domain.Base
         public int MovesLeft { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
-
+        public int MovesMade { get; set; }
         #endregion
 
         public int TimeoutInSeconds { get; } = 5;
@@ -32,7 +32,9 @@ namespace AStarPathFindingBotCore.Domain.Base
         public JsonSerializerSettings SerializerSettings { get; }
         public WebSocket WebSocket { get; }
 
-        private readonly Dictionary<MoveDirection, string> _directionsDictionary = new Dictionary<MoveDirection, string>
+        #region "Enums mappings to API values"
+
+        private readonly Dictionary<MoveDirection, string> _directions = new Dictionary<MoveDirection, string>
         {
             {MoveDirection.Down, "DOWN"},
             {MoveDirection.Left, "LEFT"},
@@ -40,6 +42,20 @@ namespace AStarPathFindingBotCore.Domain.Base
             {MoveDirection.Right, "RIGHT"},
             {MoveDirection.Up, "UP"}
         };
+
+        private readonly Dictionary<ErrorType, string> _errorTypes = new Dictionary<ErrorType, string>
+        {
+            {ErrorType.InvalidMessage, "invalidMessage" },
+            {ErrorType.InvalidMessageType, "invalidMessageType"},
+            {ErrorType.InvalidConnectMessage, "invalidConnectMessage"},
+            {ErrorType.InvalidMoveMessage, "invalidMoveMessage"},
+            {ErrorType.InvalidRestartMessage, "invalidRestartMessage"},
+            {ErrorType.GameAlreadyStarted, "gameAlreadyStarted"},
+            {ErrorType.InvalidPlayerId, "invalidPlayerId"},
+            {ErrorType.InvalidMove, "invalidMove"}
+        };
+
+        #endregion
 
         public LaxmarPlayerBase(string name, string webSocketUrl, JsonSerializerSettings serializerSettings = null)
         {
@@ -51,6 +67,8 @@ namespace AStarPathFindingBotCore.Domain.Base
 
         public bool JoinGame()
         {
+            MovesMade = 0;
+
             if (!WebSocket.ConnectWithTimeout(TimeoutInSeconds))
                 return false;
 
@@ -98,6 +116,8 @@ namespace AStarPathFindingBotCore.Domain.Base
                         MakeMove(MoveDirection.Up);
                         break;
                     }
+                case "OkResponse":
+                    break;
                 default:
                     Console.WriteLine(e.Data);
                     break;
@@ -111,9 +131,8 @@ namespace AStarPathFindingBotCore.Domain.Base
                 Console.WriteLine($"{Name}: I can't move since I'm not in any game yet.");
                 return false;
             }
-
             
-            var moveMessage = JsonConvert.SerializeObject(new MoveMessage { PlayerId = Id, Move = _directionsDictionary[moveDirection] }, SerializerSettings);
+            var moveMessage = JsonConvert.SerializeObject(new MoveMessage { PlayerId = Id, Move = _directions[moveDirection] }, SerializerSettings);
             WebSocket.Send(moveMessage);
             return true;
             //Console.WriteLine($"{Name}: Trying to join the game: ");
