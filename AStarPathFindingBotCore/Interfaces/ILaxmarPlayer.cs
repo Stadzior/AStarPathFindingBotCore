@@ -1,8 +1,9 @@
-﻿using AStarPathFindingBotCore.Enums;
+﻿using AStarPathFindingBotCore.Domain;
+using AStarPathFindingBotCore.Enums;
 using Newtonsoft.Json;
 using WebSocketSharp;
 
-namespace AStarPathFindingBotCore.Domain.Interfaces
+namespace AStarPathFindingBotCore.Interfaces
 {
     public interface ILaxmarPlayer
     {
@@ -23,7 +24,7 @@ namespace AStarPathFindingBotCore.Domain.Interfaces
         WebSocket WebSocket { get; }
         bool JoinGame();
         void ExitGame();
-        bool MakeMove(MoveDirection direction);
-        string ChooseDirection();
+        bool MakeMove();
+        MoveDirection ChooseDirection();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AStarPathFindingBotCore.Communication;
-using AStarPathFindingBotCore.Domain.Interfaces;
+using AStarPathFindingBotCore.Domain;
 using AStarPathFindingBotCore.Enums;
+using AStarPathFindingBotCore.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -8,7 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using WebSocketSharp;
 
-namespace AStarPathFindingBotCore.Domain.Base
+namespace AStarPathFindingBotCore.Base
 {
     public abstract class LaxmarPlayerBase : ILaxmarPlayer
     {
@@ -113,10 +114,10 @@ namespace AStarPathFindingBotCore.Domain.Base
                     {
                         var moveRequestMessage = JsonConvert.DeserializeObject<MoveRequestMessage>(e.Data);
                         //Do choosing direction
-                        MakeMove(MoveDirection.Up);
+                        MakeMove();
                         break;
                     }
-                case "OkResponse":
+                case "ResponseOK":
                     break;
                 case "Error":
                     {
@@ -145,7 +146,7 @@ namespace AStarPathFindingBotCore.Domain.Base
                                 Console.WriteLine($"{Name}: Player id is invalid.");
                                 break;
                             case ErrorType.InvalidMove:
-                                MakeMove(MoveDirection.Right);
+                                Console.WriteLine($"{Name}: I've reached the edge of the world.");
                                 break;
                             default:
                                 break;
@@ -158,13 +159,13 @@ namespace AStarPathFindingBotCore.Domain.Base
             }
         }
 
-        public bool MakeMove(MoveDirection moveDirection)
-        {            
-            var moveMessage = JsonConvert.SerializeObject(new MoveMessage { PlayerId = Id, Move = _directions[moveDirection] }, SerializerSettings);
+        public bool MakeMove()
+        {
+            var moveMessage = JsonConvert.SerializeObject(new MoveMessage { PlayerId = Id, Move = _directions[ChooseDirection()] }, SerializerSettings);
             WebSocket.Send(moveMessage);
             return true;
         }
 
-        public abstract string ChooseDirection();
+        public abstract MoveDirection ChooseDirection();
     }
 }
