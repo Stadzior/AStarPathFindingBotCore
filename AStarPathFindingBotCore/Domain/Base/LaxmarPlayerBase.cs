@@ -43,16 +43,16 @@ namespace AStarPathFindingBotCore.Domain.Base
             {MoveDirection.Up, "UP"}
         };
 
-        private readonly Dictionary<ErrorType, string> _errorTypes = new Dictionary<ErrorType, string>
+        private readonly Dictionary<string, ErrorType> _errorTypes = new Dictionary<string, ErrorType>
         {
-            {ErrorType.InvalidMessage, "invalidMessage" },
-            {ErrorType.InvalidMessageType, "invalidMessageType"},
-            {ErrorType.InvalidConnectMessage, "invalidConnectMessage"},
-            {ErrorType.InvalidMoveMessage, "invalidMoveMessage"},
-            {ErrorType.InvalidRestartMessage, "invalidRestartMessage"},
-            {ErrorType.GameAlreadyStarted, "gameAlreadyStarted"},
-            {ErrorType.InvalidPlayerId, "invalidPlayerId"},
-            {ErrorType.InvalidMove, "invalidMove"}
+            {"invalidMessage", ErrorType.InvalidMessage},
+            {"invalidMessageType", ErrorType.InvalidMessageType},
+            {"invalidConnectMessage", ErrorType.InvalidConnectMessage},
+            {"invalidMoveMessage", ErrorType.InvalidMoveMessage},
+            {"invalidRestartMessage", ErrorType.InvalidRestartMessage},
+            {"gameAlreadyStarted", ErrorType.GameAlreadyStarted},
+            {"invalidPlayerId", ErrorType.InvalidPlayerId},
+            {"invalidMove", ErrorType.InvalidMove}
         };
 
         #endregion
@@ -118,6 +118,40 @@ namespace AStarPathFindingBotCore.Domain.Base
                     }
                 case "OkResponse":
                     break;
+                case "Error":
+                    {
+                        var errorType = _errorTypes[((JObject)JsonConvert.DeserializeObject(e.Data))["msg"].Value<string>()];
+                        switch (errorType)
+                        {
+                            case ErrorType.InvalidMessage:
+                                Console.WriteLine($"{Name}: [Communication Error] Invalid message.");
+                                break;
+                            case ErrorType.InvalidMessageType:
+                                Console.WriteLine($"{Name}: [Communication Error] Invalid message type.");
+                                break;
+                            case ErrorType.InvalidConnectMessage:
+                                Console.WriteLine($"{Name}: [Communication Error] Invalid connect message.");
+                                break;
+                            case ErrorType.InvalidMoveMessage:
+                                Console.WriteLine($"{Name}: [Communication Error] Invalid move message.");
+                                break;
+                            case ErrorType.InvalidRestartMessage:
+                                Console.WriteLine($"{Name}: [Communication Error] Invalid restart message.");
+                                break;
+                            case ErrorType.GameAlreadyStarted:
+                                Console.WriteLine($"{Name}: Game already started.");
+                                break;
+                            case ErrorType.InvalidPlayerId:
+                                Console.WriteLine($"{Name}: Player id is invalid.");
+                                break;
+                            case ErrorType.InvalidMove:
+                                MakeMove(MoveDirection.Right);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    }
                 default:
                     Console.WriteLine(e.Data);
                     break;
@@ -125,29 +159,10 @@ namespace AStarPathFindingBotCore.Domain.Base
         }
 
         public bool MakeMove(MoveDirection moveDirection)
-        {
-            if (!IsConnected)
-            {
-                Console.WriteLine($"{Name}: I can't move since I'm not in any game yet.");
-                return false;
-            }
-            
+        {            
             var moveMessage = JsonConvert.SerializeObject(new MoveMessage { PlayerId = Id, Move = _directions[moveDirection] }, SerializerSettings);
             WebSocket.Send(moveMessage);
             return true;
-            //Console.WriteLine($"{Name}: Trying to join the game: ");
-            //for (int i = 1; i <= WebSocket.WaitTime.TotalSeconds; i++)
-            //{
-            //    if (IsConnected)
-            //    {
-            //        Console.WriteLine($"{Environment.NewLine}{Name}: Joined the game.");
-            //        return true;
-            //    }
-            //    Thread.Sleep(1000);
-            //    Console.Write($"{i}...");
-            //}
-            //Console.WriteLine($"{Environment.NewLine}{Name}: Could not join the game.");
-            //return false;
         }
 
         public abstract string ChooseDirection();

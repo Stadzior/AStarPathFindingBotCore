@@ -17,7 +17,7 @@ namespace AStarPathFindingBotCore
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
-
+            
             var playerOne = new MyBot("Kamil", "ws://localhost:8000", settings);
             var playerTwo = new MyBot("Michał", "ws://localhost:8000", settings);
             playerOne.JoinGame();
