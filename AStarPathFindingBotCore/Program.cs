@@ -10,25 +10,19 @@ namespace AStarPathFindingBotCore
 {
     class Program
     {
-        private const int TIMEOUT_IN_SECONDS = 5;
         static void Main(string[] args)
         {
-            using (var webSocket = new WebSocket("ws://localhost:8000"))
+            var settings = new JsonSerializerSettings
             {
-                webSocket.OnMessage += (sender, e) =>
-                    Console.WriteLine("Server says: " + e.Data);
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            };
 
-                webSocket.ConnectWithTimeout(TIMEOUT_IN_SECONDS);
+            var playerOne = new AStarBot("Kamil", "ws://localhost:8000", settings);
                 
-                var settings = new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                };
-                var bot = new PathFindingBot(settings);
-                bot.JoinGame(webSocket, "Kamil");
+            playerOne.JoinGame();
 
-                Console.ReadKey(true);
-            }
+            Console.ReadKey(true);
+            playerOne.ExitGame();
         }
     }
 }

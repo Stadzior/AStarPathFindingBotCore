@@ -6,7 +6,7 @@ namespace AStarPathFindingBotCore
 {
     public static class WebSocketExtensions
     {
-        public static void ConnectWithTimeout(this WebSocket webSocket, int timeoutInSeconds)
+        public static bool ConnectWithTimeout(this WebSocket webSocket, int timeoutInSeconds)
         {
             webSocket.WaitTime = TimeSpan.FromSeconds(timeoutInSeconds);
             webSocket.Connect();
@@ -16,12 +16,13 @@ namespace AStarPathFindingBotCore
                 if (webSocket.IsAlive)
                 {
                     Console.WriteLine("Server reached.");
-                    return;
+                    return true;
                 }
                 Thread.Sleep(1000);
                 Console.Write($"{i}...");
             }
             Console.WriteLine($"{Environment.NewLine}Server is unreachable.");
+            return false;
         }
     }
 }
