@@ -1,7 +1,9 @@
 ﻿using AStarPathFindingBotCore.Base;
+using AStarPathFindingBotCore.Domain;
 using AStarPathFindingBotCore.Enums;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace AStarPathFindingBotCore
@@ -12,7 +14,7 @@ namespace AStarPathFindingBotCore
         {
         }
 
-        public override MoveDirection ChooseDirection()
+        public override MoveDirection ChooseDirection(Map map, List<Player> players)
         {
             ConsoleKey hittedKey;
             do

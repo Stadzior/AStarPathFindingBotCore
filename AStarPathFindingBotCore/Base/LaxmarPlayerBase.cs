@@ -16,16 +16,8 @@ namespace AStarPathFindingBotCore.Base
         #region "Current player state"
 
         public int Id { get; set; }
-        public bool HasFlag { get; set; }
-        public bool IsAlive { get; set; }
         public string Name { get; }
-        public int MaxMovesPerRound { get; set; }
-        public BasePosition BasePosition { get; set; }
-        public int ViewRange { get; set; }
-        public int MovesLeft { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int MovesMade { get; set; }
+
         #endregion
 
         public int TimeoutInSeconds { get; } = 5;
@@ -68,8 +60,6 @@ namespace AStarPathFindingBotCore.Base
 
         public bool JoinGame()
         {
-            MovesMade = 0;
-
             if (!WebSocket.ConnectWithTimeout(TimeoutInSeconds))
                 return false;
 
@@ -113,8 +103,7 @@ namespace AStarPathFindingBotCore.Base
                 case "MoveRequest":
                     {
                         var moveRequestMessage = JsonConvert.DeserializeObject<MoveRequestMessage>(e.Data);
-                        //Do choosing direction
-                        MakeMove();
+                        MakeMove(ChooseDirection(moveRequestMessage.Map, moveRequestMessage.Players));
                         break;
                     }
                 case "ResponseOK":
@@ -159,13 +148,13 @@ namespace AStarPathFindingBotCore.Base
             }
         }
 
-        public bool MakeMove()
+        public bool MakeMove(MoveDirection moveDirection)
         {
-            var moveMessage = JsonConvert.SerializeObject(new MoveMessage { PlayerId = Id, Move = _directions[ChooseDirection()] }, SerializerSettings);
+            var moveMessage = JsonConvert.SerializeObject(new MoveMessage { PlayerId = Id, Move = _directions[moveDirection] }, SerializerSettings);
             WebSocket.Send(moveMessage);
             return true;
         }
 
-        public abstract MoveDirection ChooseDirection();
+        public abstract MoveDirection ChooseDirection(Map map, List<Player> players);
     }
 }
