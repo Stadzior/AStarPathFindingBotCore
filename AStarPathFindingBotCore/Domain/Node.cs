@@ -16,7 +16,7 @@ namespace AStarPathFindingBotCore.Domain
         {
             return nodeMap.SelectMany(x => x)
                 .Where(x => (x.X == X && Math.Abs(x.Y - Y) == 1) || (x.Y == Y && Math.Abs(x.X - X) == 1))
-                .OrderByDescending(x => x.MoveCost + x.DistanceFromTarget)
+                .OrderBy(x => x.MoveCost + x.DistanceFromTarget)
                 .ToList();
         }
     }

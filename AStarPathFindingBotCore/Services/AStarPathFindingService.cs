@@ -14,11 +14,13 @@ namespace AStarPathFindingBotCore.Services
 
         public AStarPathFindingService()
         {
+            _closedList = new List<(Node ParentNode, IList<Node> ChildNodes)>();
         }
         
         public List<(int X, int Y)> FindBestPath(Map map, (int X, int Y) startingPoint, (int X, int Y) targetPoint)
         {
             var nodeMap = GenerateNodeMap(map, targetPoint);
+            targetPoint = FindClosestVisiblePointToTheTarget(nodeMap, targetPoint);
             var startingNode = nodeMap.SelectMany(x => x).Single(x => x.X == startingPoint.X && x.Y == startingPoint.Y);
             var neighbourNodes = startingNode.GetNeighbours(nodeMap);
 
@@ -36,6 +38,13 @@ namespace AStarPathFindingBotCore.Services
             PerformStep(nodeMap, startingNode, targetPoint);
 
             return BuildPathByTraversingBack(targetPoint);
+        }
+
+        private (int X, int Y) FindClosestVisiblePointToTheTarget(List<List<Node>> nodeMap, (int X, int Y) targetPoint)
+        {
+            var closestVisibleNodeToTheTarget = nodeMap.SelectMany(x => x).Where(x => x.MoveCost > 0).OrderBy(x => (X: x.X, Y: x.Y).Distance(targetPoint)).First();
+            var hue = nodeMap.SelectMany(x => x).Where(x => x.MoveCost > 0).Select(x => ((x.X, x.Y), (X: x.X, Y: x.Y).Distance(targetPoint)));
+            return (closestVisibleNodeToTheTarget.X, closestVisibleNodeToTheTarget.Y);
         }
 
         private List<(int X, int Y)> BuildPathByTraversingBack((int X, int Y) targetPoint)
@@ -60,7 +69,7 @@ namespace AStarPathFindingBotCore.Services
         {
             foreach (var parentNode in _closedList.Single(x => x.ParentNode == startingNode).ChildNodes)
             {
-                var neighbourNodes = parentNode.GetNeighbours(nodeMap);
+                var neighbourNodes = parentNode.GetNeighbours(nodeMap).Where(x => _closedList.All(y => x != y.ParentNode)).ToList();
                 var conflictingNodes = neighbourNodes.Where(x => _closedList.SelectMany(y => y.ChildNodes).Contains(x));
                 foreach (var conflictingNode in conflictingNodes)
                 {
@@ -93,7 +102,7 @@ namespace AStarPathFindingBotCore.Services
                         X = x,
                         Y = y,
                         MoveCost = map.Fields[x][y] > 0 ? map.Fields[x][y] : 0,
-                        DistanceFromTarget = Math.Abs((targetPosition.X - x) + (targetPosition.Y - y))
+                        DistanceFromTarget = targetPosition.Distance((x, y))
                     });
                 }
             }

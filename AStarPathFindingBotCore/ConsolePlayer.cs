@@ -10,7 +10,7 @@ namespace AStarPathFindingBotCore
 {
     public class ConsolePlayer : LaxmarPlayerBase
     {
-        public ConsolePlayer(string name, string webSocketUrl, JsonSerializerSettings serializerSettings = null) : base(name, webSocketUrl, serializerSettings)
+        public ConsolePlayer(string name, string webSocketUrl, JsonSerializerSettings serializerSettings = null) : base(name, webSocketUrl, null, serializerSettings)
         {
         }
 
