@@ -9,7 +9,7 @@
         public int MaxMovesPerRound { get; set; }
         public BasePosition BasePosition { get; set; }
         public int ViewRange { get; set; }
-        public int MovesLeft { get; set; }
+        public double MovesLeft { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
     }

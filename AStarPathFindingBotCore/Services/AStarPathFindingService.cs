@@ -21,7 +21,6 @@ namespace AStarPathFindingBotCore.Services
             _closedList = new List<(Node ParentNode, IList<Node> ChildNodes)>();
             var nodeMap = GenerateNodeMap(map, targetPoint);
             targetPoint = FindClosestVisiblePointToTheTarget(nodeMap, targetPoint);
-            nodeMap = RemoveUnvisibleNodes(nodeMap);
             var startingNode = nodeMap.SelectMany(x => x).Single(x => x.X == startingPoint.X && x.Y == startingPoint.Y);
             var neighbourNodes = startingNode.GetNeighbours(nodeMap);
 
@@ -41,18 +40,10 @@ namespace AStarPathFindingBotCore.Services
             return BuildPathByTraversingBack(targetPoint);
         }
 
-        private static List<List<Node>> RemoveUnvisibleNodes(List<List<Node>> nodeMap)
-        {
-            nodeMap = nodeMap
-                .Where(x => x.Any(y => y.MoveCost > 0))
-                .Select(x => x.Where(y => y.MoveCost > 0).ToList()).ToList();
-            return nodeMap;
-        }
-
         private (int X, int Y) FindClosestVisiblePointToTheTarget(List<List<Node>> nodeMap, (int X, int Y) targetPoint)
         {
-            var closestVisibleNodeToTheTarget = nodeMap.SelectMany(x => x).Where(x => x.MoveCost > 0).OrderBy(x => (x.X, x.Y).Distance(targetPoint)).First();
-            var hue = nodeMap.SelectMany(x => x).Where(x => x.MoveCost > 0).Select(x => ((x.X, x.Y), (X: x.X, Y: x.Y).Distance(targetPoint)));
+            var closestVisibleNodeToTheTarget = nodeMap.SelectMany(x => x).OrderBy(x => (x.X, x.Y).Distance(targetPoint)).First();
+            var hue = nodeMap.SelectMany(x => x).Where(x => x.MoveCost > 0).Select(x => ((x.X, x.Y), (x.X, x.Y).Distance(targetPoint)));
             return (closestVisibleNodeToTheTarget.X, closestVisibleNodeToTheTarget.Y);
         }
 
@@ -66,7 +57,9 @@ namespace AStarPathFindingBotCore.Services
             Node currentNode;
             do
             {
-                currentNode = _closedList.Single(x => x.ChildNodes.Any(y => y.X == targetPoint.X && y.Y == targetPoint.Y)).ParentNode;
+                currentNode = _closedList.FirstOrDefault(x => x.ChildNodes.Any(y => y.X == targetPoint.X && y.Y == targetPoint.Y)).ParentNode;
+                if (currentNode == null)
+                    break;
                 targetPoint = (currentNode.X, currentNode.Y);
                 path.Add(targetPoint);
             } while (_closedList.Any(x => x.ChildNodes.Contains(currentNode)));
@@ -77,7 +70,7 @@ namespace AStarPathFindingBotCore.Services
 
         private void PerformStep(List<List<Node>> nodeMap, Node startingNode, (int X, int Y) targetPoint)
         {
-            var childNodes = _closedList.Single(x => x.ParentNode == startingNode).ChildNodes;
+            var childNodes = _closedList.First(x => x.ParentNode == startingNode).ChildNodes.ToList();
             foreach (var parentNode in childNodes)
             {
                 var neighbourNodes = parentNode.GetNeighbours(nodeMap).Where(x => _closedList.All(y => x != y.ParentNode)).ToList();
@@ -86,7 +79,7 @@ namespace AStarPathFindingBotCore.Services
                 foreach (var conflictingNode in conflictingNodes)
                 {
                     if (conflictingNode.MoveCostFromStartingPoint < parentNode.MoveCostFromStartingPoint + conflictingNode.MoveCost)
-                        _closedList.Single(x => x.ChildNodes.Contains(conflictingNode)).ChildNodes.Remove(conflictingNode);
+                        _closedList.First(x => x.ChildNodes.Contains(conflictingNode)).ChildNodes.Remove(conflictingNode);
                 }
 
                 foreach (var neighbourNode in neighbourNodes)
@@ -97,10 +90,7 @@ namespace AStarPathFindingBotCore.Services
                 if (_closedList.SelectMany(x => x.ChildNodes).Any(x => x.X == targetPoint.X && x.Y == targetPoint.Y))
                     return;
                 else
-                {
                     PerformStep(nodeMap, parentNode, targetPoint);
-                    return;
-                }
             }
         }
 
@@ -110,17 +100,19 @@ namespace AStarPathFindingBotCore.Services
             for (int y = 0; y < map.Height; y++)
             {
                 var rowNodes = new List<Node>();
-                nodeMap.Add(rowNodes);
                 for (int x = 0; x < map.Width; x++)
                 {
-                    rowNodes.Add(new Node
-                    {
-                        X = x,
-                        Y = y,
-                        MoveCost = map.Fields[x][y] > 0 ? map.Fields[x][y] : 0,
-                        DistanceFromTarget = targetPosition.Distance((x, y))
-                    });
+                    if (map.Fields[y][x] > 0)
+                        rowNodes.Add(new Node
+                        {
+                            X = x,
+                            Y = y,
+                            MoveCost = map.Fields[y][x],
+                            DistanceFromTarget = targetPosition.Distance((x, y))
+                        });
                 }
+                if (rowNodes.Any())
+                    nodeMap.Add(rowNodes);
             }
             return nodeMap;
         }
