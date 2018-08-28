@@ -11,18 +11,38 @@ namespace AStarPathFindingBotCore
 {
     public class MyBot : LaxmarPlayerBase
     {
-        public MoveDirection LastMove { get; private set; }
-        public bool WasLastMoveInvalid { get; private set; }
         public List<List<Node>> NodeMap { get; private set; }
-
+        public (int X, int Y)? FlagPosition { get; set; }
+        public (int X, int Y) OpponentPosition { get; set; }
+        public (int X, int Y) OpponentBasePosition { get; set; }
+        public (int X, int Y) MyPosition { get; set; }
+        public (int X, int Y) BasePosition { get; set; }
+        
         public MyBot(string name, string webSocketUrl, JsonSerializerSettings serializerSettings = null) : base(name, webSocketUrl, serializerSettings)
         {
         }
 
         public override MoveDirection ChooseDirection(Map map, List<Player> players)
         {
+            FlagPosition = DetermineFlagPosition(map, players);
+
+            return AStarDetermineNextStep();
+        }
+
+        private (int X, int Y) DetermineFlagPosition(Map map, List<Player> players)
+        {
+            var playerHoldingTheFlag = players.SingleOrDefault(x => x.HasFlag);
+            return playerHoldingTheFlag != null ? (X: playerHoldingTheFlag.X, Y: playerHoldingTheFlag.Y) :
+                FlagPosition ?? (X: (int)Math.Floor((double)map.Width / 2), Y: (int)Math.Floor((double)map.Width / 2));
+        }
+
+        private MoveDirection AStarDetermineNextStep()
+        {
+            var rand = new Random().Next(2);
+            if (rand == 1)
+                rand = 2;
             //UpdateMap(map);
-            return (MoveDirection) new Random().Next(4);
+            return (MoveDirection)rand;
         }
 
         private void UpdateMap(Map map)
