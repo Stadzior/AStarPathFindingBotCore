@@ -23,15 +23,15 @@ namespace AStarPathFindingBotCore
             var me = players.Single(x => x.Id == Id);
             var myPosition = (X: me.X, Y: me.Y);
             var targetPosition = me.HasFlag ? (X: me.BasePosition.X, Y: me.BasePosition.Y) : DetermineFlagPosition((map.Width, map.Height), players);
-            var nextPosition = PathFindingService.FindBestPath(GenerateNodeMap(map, targetPosition), myPosition, targetPosition).First();
+            var (X, Y) = PathFindingService.FindBestPath(map, myPosition, targetPosition).First();
 
-            if (me.MovesLeft < nextPosition.MoveCost)
+            if (me.MovesLeft < map.Fields[X][Y])
                 return MoveDirection.NoMove;
 
-            return nextPosition.X > myPosition.X ? MoveDirection.Right :
-                nextPosition.X < myPosition.X ? MoveDirection.Left :
-                nextPosition.Y > myPosition.Y ? MoveDirection.Down :
-                nextPosition.Y < myPosition.Y ? MoveDirection.Up : MoveDirection.NoMove;
+            return X > myPosition.X ? MoveDirection.Right :
+                X < myPosition.X ? MoveDirection.Left :
+                Y > myPosition.Y ? MoveDirection.Down :
+                Y < myPosition.Y ? MoveDirection.Up : MoveDirection.NoMove;
         }
 
         private (int X, int Y) DetermineFlagPosition((int Width, int Height) mapSize, List<Player> players)
@@ -40,25 +40,5 @@ namespace AStarPathFindingBotCore
             return playerHoldingTheFlag != null ? (X: playerHoldingTheFlag.X, Y: playerHoldingTheFlag.Y) : (X: (int)Math.Floor((double)mapSize.Width / 2), Y: (int)Math.Floor((double)mapSize.Width / 2));
         }
 
-        private List<List<Node>> GenerateNodeMap(Map map, (int X, int Y) targetPosition)
-        {
-            var nodeMap = new List<List<Node>>();
-            for (int y = 0; y < map.Height; y++)
-            {
-                var rowNodes = new List<Node>();
-                nodeMap.Add(rowNodes);
-                for (int x = 0; x < map.Width; x++)
-                {
-                    rowNodes.Add(new Node
-                    {
-                        X = x,
-                        Y = y,
-                        MoveCost = map.Fields[x][y] > 0 ? map.Fields[x][y] : 0,
-                        DistanceFromTarget = Math.Abs((targetPosition.X - x) + (targetPosition.Y - y))
-                    });
-                }
-            }
-            return nodeMap;
-        }
     }
 }
