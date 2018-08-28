@@ -21,6 +21,7 @@ namespace AStarPathFindingBotCore.Services
         {
             var nodeMap = GenerateNodeMap(map, targetPoint);
             targetPoint = FindClosestVisiblePointToTheTarget(nodeMap, targetPoint);
+            nodeMap = RemoveUnvisibleNodes(nodeMap);
             var startingNode = nodeMap.SelectMany(x => x).Single(x => x.X == startingPoint.X && x.Y == startingPoint.Y);
             var neighbourNodes = startingNode.GetNeighbours(nodeMap);
 
@@ -40,9 +41,17 @@ namespace AStarPathFindingBotCore.Services
             return BuildPathByTraversingBack(targetPoint);
         }
 
+        private static List<List<Node>> RemoveUnvisibleNodes(List<List<Node>> nodeMap)
+        {
+            nodeMap = nodeMap
+                .Where(x => x.Any(y => y.MoveCost > 0))
+                .Select(x => x.Where(y => y.MoveCost > 0).ToList()).ToList();
+            return nodeMap;
+        }
+
         private (int X, int Y) FindClosestVisiblePointToTheTarget(List<List<Node>> nodeMap, (int X, int Y) targetPoint)
         {
-            var closestVisibleNodeToTheTarget = nodeMap.SelectMany(x => x).Where(x => x.MoveCost > 0).OrderBy(x => (X: x.X, Y: x.Y).Distance(targetPoint)).First();
+            var closestVisibleNodeToTheTarget = nodeMap.SelectMany(x => x).OrderBy(x => (x.X, x.Y).Distance(targetPoint)).First();
             var hue = nodeMap.SelectMany(x => x).Where(x => x.MoveCost > 0).Select(x => ((x.X, x.Y), (X: x.X, Y: x.Y).Distance(targetPoint)));
             return (closestVisibleNodeToTheTarget.X, closestVisibleNodeToTheTarget.Y);
         }
