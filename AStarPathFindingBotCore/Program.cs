@@ -1,5 +1,6 @@
 ﻿using AStarPathFindingBotCore.Communication;
 using AStarPathFindingBotCore.Enums;
+using AStarPathFindingBotCore.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -18,8 +19,8 @@ namespace AStarPathFindingBotCore
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
             
-            var playerOne = new MyBot("Kamil", "ws://localhost:8000", settings);
-            var playerTwo = new MyBot("Michał", "ws://localhost:8000", settings);
+            var playerOne = new EagerForFlagBot("Flag_eater", "ws://localhost:8000", new AStarPathFindingService(), settings);
+            var playerTwo = new EagerForFlagBot("Base_rusher", "ws://localhost:8000",new AStarPathFindingService(), settings);
             playerOne.JoinGame();
             playerTwo.JoinGame();
             Console.ReadKey(true);

@@ -1,5 +1,6 @@
 ﻿using AStarPathFindingBotCore.Domain;
 using AStarPathFindingBotCore.Enums;
+using AStarPathFindingBotCore.Services.Interfaces;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using WebSocketSharp;

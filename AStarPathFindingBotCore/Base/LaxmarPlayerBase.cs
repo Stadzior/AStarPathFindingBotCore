@@ -2,6 +2,7 @@
 using AStarPathFindingBotCore.Domain;
 using AStarPathFindingBotCore.Enums;
 using AStarPathFindingBotCore.Interfaces;
+using AStarPathFindingBotCore.Services.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -25,6 +26,7 @@ namespace AStarPathFindingBotCore.Base
         public bool IsConnected { get; set; }
         public JsonSerializerSettings SerializerSettings { get; }
         public WebSocket WebSocket { get; }
+        public IPathFindingService PathFindingService { get; set; }
 
         #region "Enums mappings to API values"
 
@@ -51,12 +53,13 @@ namespace AStarPathFindingBotCore.Base
 
         #endregion
 
-        public LaxmarPlayerBase(string name, string webSocketUrl, JsonSerializerSettings serializerSettings = null)
+        public LaxmarPlayerBase(string name, string webSocketUrl, IPathFindingService pathFindingService, JsonSerializerSettings serializerSettings = null)
         {
             Name = name;
             SerializerSettings = serializerSettings;
             WebSocket = new WebSocket("ws://localhost:8000");
             WebSocket.OnMessage += OnMessageHandler;
+            PathFindingService = pathFindingService;
         }
 
         public bool JoinGame()
@@ -105,7 +108,7 @@ namespace AStarPathFindingBotCore.Base
                     {
                         var moveRequestMessage = JsonConvert.DeserializeObject<MoveRequestMessage>(e.Data);
                         var hue = moveRequestMessage.Map.Fields.SelectMany(x => x).Where(x => x > 0);
-                        MakeMove(ChooseDirection(moveRequestMessage.Map, moveRequestMessage.Players));
+                        MakeMove(ChooseDirection(moveRequestMessage.Map, moveRequestMessage.Players, PathFindingService));
                         break;
                     }
                 case "ResponseOK":
