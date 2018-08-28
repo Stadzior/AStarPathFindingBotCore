@@ -14,11 +14,11 @@ namespace AStarPathFindingBotCore.Services
 
         public AStarPathFindingService()
         {
-            _closedList = new List<(Node ParentNode, IList<Node> ChildNodes)>();
         }
         
         public List<(int X, int Y)> FindBestPath(Map map, (int X, int Y) startingPoint, (int X, int Y) targetPoint)
         {
+            _closedList = new List<(Node ParentNode, IList<Node> ChildNodes)>();
             var nodeMap = GenerateNodeMap(map, targetPoint);
             targetPoint = FindClosestVisiblePointToTheTarget(nodeMap, targetPoint);
             nodeMap = RemoveUnvisibleNodes(nodeMap);
@@ -51,7 +51,7 @@ namespace AStarPathFindingBotCore.Services
 
         private (int X, int Y) FindClosestVisiblePointToTheTarget(List<List<Node>> nodeMap, (int X, int Y) targetPoint)
         {
-            var closestVisibleNodeToTheTarget = nodeMap.SelectMany(x => x).OrderBy(x => (x.X, x.Y).Distance(targetPoint)).First();
+            var closestVisibleNodeToTheTarget = nodeMap.SelectMany(x => x).Where(x => x.MoveCost > 0).OrderBy(x => (x.X, x.Y).Distance(targetPoint)).First();
             var hue = nodeMap.SelectMany(x => x).Where(x => x.MoveCost > 0).Select(x => ((x.X, x.Y), (X: x.X, Y: x.Y).Distance(targetPoint)));
             return (closestVisibleNodeToTheTarget.X, closestVisibleNodeToTheTarget.Y);
         }
@@ -67,7 +67,8 @@ namespace AStarPathFindingBotCore.Services
             do
             {
                 currentNode = _closedList.Single(x => x.ChildNodes.Any(y => y.X == targetPoint.X && y.Y == targetPoint.Y)).ParentNode;
-                path.Add((currentNode.X, currentNode.Y));
+                targetPoint = (currentNode.X, currentNode.Y);
+                path.Add(targetPoint);
             } while (_closedList.Any(x => x.ChildNodes.Contains(currentNode)));
 
             path.Reverse();
@@ -76,15 +77,18 @@ namespace AStarPathFindingBotCore.Services
 
         private void PerformStep(List<List<Node>> nodeMap, Node startingNode, (int X, int Y) targetPoint)
         {
-            foreach (var parentNode in _closedList.Single(x => x.ParentNode == startingNode).ChildNodes)
+            var childNodes = _closedList.Single(x => x.ParentNode == startingNode).ChildNodes;
+            foreach (var parentNode in childNodes)
             {
                 var neighbourNodes = parentNode.GetNeighbours(nodeMap).Where(x => _closedList.All(y => x != y.ParentNode)).ToList();
                 var conflictingNodes = neighbourNodes.Where(x => _closedList.SelectMany(y => y.ChildNodes).Contains(x));
+
                 foreach (var conflictingNode in conflictingNodes)
                 {
                     if (conflictingNode.MoveCostFromStartingPoint < parentNode.MoveCostFromStartingPoint + conflictingNode.MoveCost)
                         _closedList.Single(x => x.ChildNodes.Contains(conflictingNode)).ChildNodes.Remove(conflictingNode);
                 }
+
                 foreach (var neighbourNode in neighbourNodes)
                     neighbourNode.MoveCostFromStartingPoint = parentNode.MoveCostFromStartingPoint + neighbourNode.MoveCost;
 
@@ -93,7 +97,10 @@ namespace AStarPathFindingBotCore.Services
                 if (_closedList.SelectMany(x => x.ChildNodes).Any(x => x.X == targetPoint.X && x.Y == targetPoint.Y))
                     return;
                 else
+                {
                     PerformStep(nodeMap, parentNode, targetPoint);
+                    return;
+                }
             }
         }
 

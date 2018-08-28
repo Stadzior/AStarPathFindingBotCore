@@ -107,7 +107,6 @@ namespace AStarPathFindingBotCore.Base
                 case "MoveRequest":
                     {
                         var moveRequestMessage = JsonConvert.DeserializeObject<MoveRequestMessage>(e.Data);
-                        var hue = moveRequestMessage.Map.Fields.SelectMany(x => x).Where(x => x > 0);
                         MakeMove(ChooseDirection(moveRequestMessage.Map, moveRequestMessage.Players));
                         break;
                     }

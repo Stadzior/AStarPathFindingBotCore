@@ -23,7 +23,7 @@ namespace AStarPathFindingBotCore
             var me = players.Single(x => x.Id == Id);
             var myPosition = (X: me.X, Y: me.Y);
             var targetPosition = me.HasFlag ? (X: me.BasePosition.X, Y: me.BasePosition.Y) : DetermineFlagPosition((map.Width, map.Height), players);
-            var (X, Y) = PathFindingService.FindBestPath(map, myPosition, targetPosition).First();
+            var (X, Y) = PathFindingService.FindBestPath(map, myPosition, targetPosition).Skip(1).First();
 
             if (me.MovesLeft < map.Fields[X][Y])
                 return MoveDirection.NoMove;
